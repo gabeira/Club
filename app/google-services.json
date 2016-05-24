@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "308344957916",
+    "firebase_url": "https://clubff.firebaseio.com",
+    "project_id": "project-1570105818475916353",
+    "storage_bucket": "project-1570105818475916353.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:308344957916:android:109b0a9e3ea0761a",
+        "android_client_info": {
+          "package_name": "au.com.frontfoot.club"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "308344957916-dr29atr98pjfo5ovfj96q0348mt14dce.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8nBqkvJx_gqqVKhDrZp3PcW28qSNaUlc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

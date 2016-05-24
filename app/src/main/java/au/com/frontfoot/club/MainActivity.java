@@ -1,30 +1,32 @@
 package au.com.frontfoot.club;
 
-import android.support.design.widget.TabLayout;
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.firebase.client.DataSnapshot;
-import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.ValueEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.Random;
+
+import au.com.frontfoot.club.model.ClubMember;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -65,46 +67,52 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+
+                Snackbar.make(view, "Add a Club Member " + addData(), Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
+
             }
         });
-
-
-        Firebase.setAndroidContext(this);
-
-
         getData();
     }
 
     public void getData() {
-        Firebase myFirebaseRef = new Firebase("https://clubff.firebaseio.com/");
-        myFirebaseRef.child("message").setValue("Do you have data? You'll love Firebase.");
-        myFirebaseRef.child("user").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                System.out.println(snapshot.getValue());
-            }
 
-            @Override
-            public void onCancelled(FirebaseError error) {
-            }
-        });
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("clubmember");
 
-        myFirebaseRef.child("app").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                System.out.println(snapshot.getValue());
-                Log.e(" ", "Received from Firebase app: " + snapshot.getValue());
-                Toast.makeText(MainActivity.this, "Data:" + snapshot.getValue(), Toast.LENGTH_SHORT).show();
-            }
+        final String userId = "id_72";//getUid();
+        myRef.child("users").child(userId).addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        // Get user value
+                        ClubMember user = dataSnapshot.getValue(ClubMember.class);
+                        Log.w("TAG", "getUser:" + user.getAge());
 
-            @Override
-            public void onCancelled(FirebaseError error) {
-            }
-        });
+                        // ...
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Log.w("TAG", "getUser:onCancelled", databaseError.toException());
+                    }
+                });
     }
 
+
+    public int addData() {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("clubmember");
+        int ageid = (new Random()).nextInt(90);
+        ClubMember cm = new ClubMember();
+        cm.setName("UserX");
+        cm.setAge("" + ageid);
+
+        myRef.child("users").child("id_" + ageid).setValue(cm);
+
+        return ageid;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
