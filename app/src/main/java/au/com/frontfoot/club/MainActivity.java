@@ -10,12 +10,15 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.firebase.database.DataSnapshot;
@@ -24,6 +27,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.lang.ref.WeakReference;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.Random;
 
 import au.com.frontfoot.club.model.ClubMember;
@@ -44,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
      * The {@link ViewPager} that will host the section contents.
      */
     private ViewPager mViewPager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,24 +80,24 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-        getData();
+        getMember("id_10");
+
+        getMembers();
+
+
     }
 
-    public void getData() {
-
+    public void getMember(final String userId) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("clubmember");
 
-        final String userId = "id_72";//getUid();
         myRef.child("users").child(userId).addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         // Get user value
                         ClubMember user = dataSnapshot.getValue(ClubMember.class);
-                        Log.w("TAG", "getUser:" + user.getAge());
-
-                        // ...
+                        Log.w("TAG", ">getUser:" + user.getAge());
                     }
 
                     @Override
@@ -100,6 +107,27 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    public void getMembers() {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("clubmember/users");
+
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.e("TAG Count ", "" + dataSnapshot.getChildrenCount());
+                // Get Post object and use the values to update the UI
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                    ClubMember user = postSnapshot.getValue(ClubMember.class);
+                    Log.w("TAG", "onDataChange getUsers:" + user.getName());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w("TAG", "loadPost:onCancelled", databaseError.toException());
+            }
+        });
+    }
 
     public int addData() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -147,6 +175,8 @@ public class MainActivity extends AppCompatActivity {
          */
         private static final String ARG_SECTION_NUMBER = "section_number";
 
+        private EditText editor;
+
         public PlaceholderFragment() {
         }
 
@@ -168,7 +198,77 @@ public class MainActivity extends AppCompatActivity {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
+
+
+            editor = (EditText) rootView.findViewById(R.id.editor);
+
+
+//            editor.addTextChangedListener(new TextWatcher() {
+//                @Override
+//                public void beforeTextChanged(final CharSequence s, final int start, final int count, final int after) {
+////                Log.e("", "beforeTextChanged Test $$$" + s);
+////                depositAmount.getView().setText(depositAmount.getView().getText().toString().substring(1));
+//
+//                }
+//
+//                @Override
+//                public void onTextChanged(final CharSequence s, final int start, final int before, final int count) {
+////                Log.e("", "onTextChanged Test $$$" + s);
+//
+//                }
+//
+//                @Override
+//                public void afterTextChanged(final Editable s) {
+//                    Log.e("base", "afterTextChanged Test "+ s.insert(0,"$"));
+//
+//                    EditText editText = editTextWeakReference.get();
+//                    if (editText == null) return;
+//                    String s = editable.toString();
+//                    editText.removeTextChangedListener(this);
+//                    String cleanString = s.toString().replaceAll("[$,.]", "");
+//                    BigDecimal parsed = new BigDecimal(cleanString).setScale(2, BigDecimal.ROUND_FLOOR).divide(new BigDecimal(100), BigDecimal.ROUND_FLOOR);
+//                    String formatted = NumberFormat.getCurrencyInstance().format(parsed);
+//                    editText.setText(formatted);
+//                    editText.setSelection(formatted.length());
+//                    editText.addTextChangedListener(this);
+//                }
+//            });
+
+            editor.addTextChangedListener(new MoneyTextWatcher(editor));
+
             return rootView;
+        }
+
+
+        public class MoneyTextWatcher implements TextWatcher {
+
+            private final WeakReference<EditText> editTextWeakReference;
+
+            public MoneyTextWatcher(EditText editText) {
+                editTextWeakReference = new WeakReference<EditText>(editText);
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                EditText editText = editTextWeakReference.get();
+                if (editText == null) return;
+                String s = editable.toString();
+                editText.removeTextChangedListener(this);
+                String cleanString = s.toString().replaceAll("[RS$,.]", "");
+                BigDecimal parsed = new BigDecimal(cleanString).setScale(2, BigDecimal.ROUND_FLOOR).divide(new BigDecimal(100), BigDecimal.ROUND_FLOOR);
+                String formatted = NumberFormat.getCurrencyInstance().format(parsed);
+                editText.setText(formatted);
+                editText.setSelection(formatted.length());
+                editText.addTextChangedListener(this);
+            }
         }
     }
 
